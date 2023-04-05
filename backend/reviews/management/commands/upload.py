@@ -1,0 +1,98 @@
+import csv
+import os
+
+from django.core.management.base import BaseCommand
+from django.conf import settings
+from django.contrib.auth import get_user_model
+
+from reviews.models import (
+    Category,
+    Genre,
+    GenreTitle,
+    Title,
+    Review
+)
+
+User = get_user_model()
+
+
+def category_create(row):
+    Category.objects.get_or_create(
+        id=row[0],
+        name=row[1],
+        slug=row[2],
+    )
+
+
+def genre_create(row):
+    Genre.objects.get_or_create(
+        id=row[0],
+        name=row[1],
+        slug=row[2],
+    )
+
+
+def titles_create(row):
+    Title.objects.get_or_create(
+        id=row[0],
+        name=row[1],
+        year=row[2],
+        description=row[3],
+        category_id=row[4],
+    )
+
+
+def genre_title_create(row):
+    GenreTitle.objects.get_or_create(
+        id=row[0],
+        genre_id=row[2],
+        title_id=row[1],
+    )
+
+
+def users_create(row):
+    User.objects.get_or_create(
+        id=row[0],
+        username=row[1],
+        email=row[2],
+    )
+
+
+def review_create(row):
+    Review.objects.get_or_create(
+        id=row[0],
+        title_id=row[1],
+        text=row[2],
+        author_id=row[3],
+        score=row[4],
+        pub_date=row[5]
+    )
+
+
+action = {
+    'category.csv': category_create,
+    'genre.csv': genre_create,
+    'titles.csv': titles_create,
+    'genre_title.csv': genre_title_create,
+    'users.csv': users_create,
+    'review.csv': review_create
+}
+
+
+class Command(BaseCommand):
+
+    def add_arguments(self, parser):
+        parser.add_argument(
+            'filename',
+            nargs='+',
+            type=str
+        )
+
+    def handle(self, *args, **options):
+        for filename in options['filename']:
+            path = os.path.join(settings.BASE_DIR, "static/data/") + filename
+            with open(path, 'r', encoding='utf-8') as file:
+                reader = csv.reader(file)
+                next(reader)
+                for row in reader:
+                    action[filename](row)
