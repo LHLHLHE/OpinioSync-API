@@ -12,7 +12,7 @@ SECRET_KEY = os.getenv('SECRET_KEY', default=get_random_secret_key())
 
 DEBUG = True
 
-ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='127.0.0.1').split()
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', default='192.168.1.109').split()
 
 
 # Application definition
@@ -128,7 +128,7 @@ REST_FRAMEWORK = {
     'DEFAULT_FILTER_BACKENDS': [
         'django_filters.rest_framework.DjangoFilterBackend',
     ],
-    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    # 'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 5,
     'DEFAULT_THROTTLE_CLASSES': [
         'api.throttling.BurstRateUserThrottle',
