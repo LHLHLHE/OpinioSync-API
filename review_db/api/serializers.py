@@ -1,18 +1,21 @@
+from django.conf import settings
 from djoser.serializers import (
     UserCreatePasswordRetypeSerializer,
     UserSerializer,
     PasswordRetypeSerializer,
-    CurrentPasswordSerializer
+    UsernameSerializer
 )
 from rest_framework import serializers
 from django.core.validators import MinValueValidator, MaxValueValidator
 
+from djoser.conf import settings as djoser_settings
 from users.models import CustomUser
 from reviews.models import (
     Category,
     Genre,
     Title,
     Review,
+    Comment,
 )
 
 
@@ -50,15 +53,18 @@ class CustomPasswordSerializer(PasswordRetypeSerializer):
     current_password = serializers.CharField(required=True)
 
 
-class SetEmailSerializer(
-    serializers.ModelSerializer,
-    CurrentPasswordSerializer
-):
+class CustomSetUsernameSerializer(UsernameSerializer):
+    class Meta:
+        model = CustomUser
+        fields = (djoser_settings.LOGIN_FIELD,)
+
+
+class SetEmailSerializer(serializers.ModelSerializer):
     new_email = serializers.EmailField(required=True)
 
     class Meta:
         model = CustomUser
-        fields = ('new_email', 'current_password')
+        fields = ('new_email',)
 
     def validate(self, attrs):
         user = self.context['request'].user or self.user
@@ -96,6 +102,7 @@ class TitleSerializer(serializers.ModelSerializer):
     genre = GenreSerializer(many=True)
     category = CategorySerializer()
     rating = serializers.IntegerField()
+    photo = serializers.SerializerMethodField()
 
     class Meta:
         model = Title
@@ -110,6 +117,12 @@ class TitleSerializer(serializers.ModelSerializer):
             'category',
             'rating'
         )
+
+    def get_photo(self, obj):
+        photo = obj.photo
+        if not photo:
+            return None
+        return f'{settings.HOST_URL}{photo.url}'
 
 
 class ReviewSerializer(serializers.ModelSerializer):
@@ -128,7 +141,9 @@ class ReviewSerializer(serializers.ModelSerializer):
         validators=[
             MinValueValidator(1),
             MaxValueValidator(10)
-        ])
+        ]
+    )
+    pub_date = serializers.DateTimeField(format='%d.%m.%Y %H:%M', read_only=True)
 
     class Meta:
         model = Review
@@ -143,3 +158,22 @@ class ReviewSerializer(serializers.ModelSerializer):
                     author=author, title=title_id).exists()):
             raise serializers.ValidationError('Вы уже оставили отзыв')
         return data
+
+
+class CommentSerializer(serializers.ModelSerializer):
+    """
+    Сериализует/десериализует данные модели Comment.
+    """
+    review = serializers.SlugRelatedField(
+        slug_field='pk',
+        read_only=True,
+    )
+    author = serializers.SlugRelatedField(
+        slug_field='username',
+        read_only=True
+    )
+    pub_date = serializers.DateTimeField(format='%d.%m.%Y %H:%M', read_only=True)
+
+    class Meta:
+        fields = ('id', 'review', 'text', 'author', 'pub_date')
+        model = Comment

@@ -4,11 +4,11 @@ from django.urls import path, include
 
 from . import settings
 
+admin.site.site_header = 'Администрирование OpinioSync'
+
 urlpatterns = [
-    path('admin/',
-         admin.site.urls),
-    path('api/',
-         include('api.urls'))
+    path('admin/', admin.site.urls),
+    path('api/', include('api.urls'))
 ]
 
 if settings.DEBUG:

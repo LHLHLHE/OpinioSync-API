@@ -4,3 +4,6 @@ djangorestframework==3.14.0
 djoser==2.1.0
 Pillow==9.5.0
 python-dotenv==1.0.0
+psycopg[binary]
+pytest-django==4.8.0
+gunicorn==22.0.0

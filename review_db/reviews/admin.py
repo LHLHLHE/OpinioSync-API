@@ -5,7 +5,8 @@ from .models import (
     Genre,
     Title,
     GenreTitle,
-    Review
+    Review,
+    Comment
 )
 
 
@@ -39,3 +40,10 @@ class ReviewAdmin(admin.ModelAdmin):
     list_display = ('author', 'score', 'title')
     search_fields = ('text', 'title__name')
     list_filter = ('author', 'score', )
+
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ('author', 'review', )
+    list_filter = ('author', )
+    search_fields = ('review__text', 'text')
